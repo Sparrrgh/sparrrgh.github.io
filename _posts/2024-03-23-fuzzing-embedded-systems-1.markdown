@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Fuzzing embedded systems - Part 1"
+title:  "Fuzzing embedded systems - Part 1, Introduction"
 date:   2024-06-05 12:30:54 +0100
 categories: fuzzing embedded
 ---
