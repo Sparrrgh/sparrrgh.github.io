@@ -11,13 +11,13 @@ This will be the start of a series of blog posts based on my bachelor's degree t
 
 As a result I developed a **fuzzer** to search for vulnerabilities in CGI binaries and a **Binary Ninja plugin** to search for ROP chains in MIPS binaries, as well as an exploit for one of the crashes triaged.
 
-Today will be really introductory and we will explore the basics of how to obtain and analyze a device's firmware. In the next episodes we will explore how to write a binary-only fuzzer in LibAFL and finally in the third part how to exploit the vulnerabilities found.
+Today will be really introductory and we will briefly explore the basics of how to obtain and analyze a device's firmware, and the process to choose a target binary for the fuzzer. In the next episodes we will explore how to write a binary-only fuzzer in LibAFL and finally in the third part how to exploit the vulnerabilities found.
 
 ## Target choice
 
 Embedded device is quite a broad term, and it encompasses many different type of systems, from huge solar inverters to tiny IoT cameras. These devices are designed to perform a handful of **specific** tasks, and often have ad-hoc hardware and software to do so.
 
-The requirements for low power consumption (they are designed to not be powered off) and low memory consumption (system resources are kept to a minimum to reduce cost and size) make implementing a lot of the modern memory corruption mitigations impossible. These makes them a prime target to gain a foothold in a network.
+The requirements for low **power consumption** (they are designed to not be powered off) and low **memory consumption** (system resources are kept to a minimum to reduce cost and size) make implementing a lot of the modern memory corruption mitigations impossible. These makes them a prime target to gain a foothold in a network.
 
 Since there are a miriad of devices which could be classified as "embedded systems", this means we have to find the type of device which better suits our needs.
 I wanted a device which:
@@ -29,7 +29,7 @@ For this reasons I chose to target a router.
 
 Commercial routers have to handle a lot of different network services as well as services to manage them, making their attack surface quite extended. Also, compromising one could grant access to different sections of the network.
 
-So I headed to Amazon and chose the one reported as "most purchased" at the time which was the DSL-3788 by D-Link[^2], a router designed with home use in mind.
+So I headed to Amazon and chose the one reported as "most purchased" at the time which was the **DSL-3788** by **D-Link**[^2], a router designed with home use in mind.
 
 ## Studying hardware configuration
 
@@ -38,15 +38,15 @@ From the uploaded pictures we can note a few things.
 
 <img src="/assets/img/dsl-3788_pcb_reuse.png">
 
-The PCB is engraved with the model number of another router. This make it more probable that code is also reused, meaning that a vulnerability found could affect multiple models.
+The PCB is engraved with the model number of **another router**. This make it more probable that code is also reused, meaning that a vulnerability found could affect multiple models.
 We can also identify single components like CPUs, memories and available interfaces.
 Identifying this components is fundamental to perform hardware attacks and gain important information which we will use during the analysis of the software.
-As an example, by identifying the CPU model as *EcoNet EN7513GT* we can determine the architecture used, which in this case it's MIPS. This will prove to be really important (and a real pain) later.
+As an example, by identifying the **CPU model** as *EcoNet EN7513GT* we can determine the architecture used, which in this case it's **MIPS**. This will prove to be really important (and a real pain) later.
 
-We can also see a potential UART interface. Exposed serial communication interfaces (e.g., UART, JTAG) are **the** low hanging fruit for firmware extraction. Extracting firmware using this interfaces usually requires low to none hardware modification, and relatively cheap hardware to interact with them.
+We can also see a potential **UART** interface. Exposed **serial communication interfaces** (e.g., UART, JTAG) are **the** low hanging fruit for firmware extraction. Extracting firmware using this interfaces usually requires low to none hardware modification, and relatively cheap hardware to interact with them.
 
 
-If none are found, it might be necessary to dump the firmware directly from memory. This is done by either **detaching** the flash memory chip completely and attaching it to a memory reader, or by sniffing the traffic between the integrated circuit and flash memory. Firmware isn't **usually** encrypted at rest, but high-security devices might have it as a feature, making dumping the flash memory useless.
+If none are found, it might be necessary to dump the firmware directly from memory. This is done by either **detaching** the flash memory chip completely and attaching it to a memory reader, or by **sniffing** the traffic between the integrated circuit and flash memory. Firmware isn't **usually** encrypted at rest, but high-security devices might have it as a feature, making dumping the flash memory useless.
 
 <img src="/assets/img/UART_online.jpg">
 
@@ -54,43 +54,44 @@ An alleged UART port is visible (just guessing, based on the 4 pins in a row) in
 
 #### Testing the UART port
 
-A UART port can be used to communicate through serial with the integrated circuit and it's used by vendors to debug the device. Usually the pins are not installed on production devices, and only the pads are exposed. These pads have sometimes their traces interrupted to stop end users from interacting with it.
+A UART port can be used to communicate through serial with the **integrated circuit** and it's used by vendors to debug the device. Usually the pins are not installed on production devices, and only the pads are exposed. These pads have sometimes their traces interrupted to stop end users from interacting with it.
 
-I first tested if the pins were connected and the engraving on the PCB was correct by using a multimeter on each of them.
+I first tested if the pins found were connected and the engraving on the PCB was correct by using a multimeter on each of them.
 There are also other more physical techniques to check if the pads are connected, like shining a bright light oh the backside of the PCB as detailed here[^4].
-I then used a logic analyzer to verify if the port was communicating correctly, and which was the correct baudrate which the interface uses to communicate. 
-The logic analyzer shows some logs as output! Meaning it does in fact communicate through serial (thankfully, because my soldering skills are **really** limited).
+I then used a *logic analyzer* to verify if the port was communicating correctly, and which was the correct *baudrate* which the interface uses to communicate. 
+The logic analyzer shows some logs as output! Meaning it does in fact communicate through serial (thankfully, because my soldering skills are almost non-existant).
 
 <img src="/assets/img/logic_analyser_UART.png">
 
 ## Obtaining firmware
 
-Firmware is typically distributed by vendor in encrypted form, to prevent users from reversing it or modifying the code run on the system.
+Firmware is typically distributed by vendor in **encrypted form**, to prevent users from reversing it or modifying the code run on the system.
 Usually this leads to interacting with hardware to get the software, but there are software-only ways to get it.
 If even only **one** past version of the firmware did not have encryption, we could decrypt the following versions using its code as detailed in this ZDI article[^5].
 This has the added benefit of being able to decrypt different firmwares of the same vendor, by writing just one decryptor.
 
-Sometimes firmware is distributed in unencrypted form using update systems directly on the device or, for modern embedded systems, through a mobile application. It might be worth trying to intercept the traffic (especially if you already have a mobile app testing laboratory) and check if it's possible to get an unencrypted firmware update this way.
+Sometimes firmware is distributed in unencrypted form using **update systems** directly on the device or, for modern embedded systems, through a mobile application. It might be worth trying to intercept the traffic (especially if you already have a mobile app testing laboratory) and check if it's possible to get an unencrypted firmware update this way.
 
 In this case I decided, for future debugging purposes, to go with the hardware route and interact with the UART port we discovered previously.
 We can now connect using our favorite serial communication tool, and interact with an exposed (root) shell.
 
 <img src="/assets/img/shikra_cut.png" style="display: block">
 
-There are many different tools available to do this (Glasgow, Shikra, Buspirate, JTAGulator, etc.) with different prices ranges according to the number of supported protocols. The one shown in the picture is a Shikra.
+There are many different tools available to do this (Glasgow, Shikra, Buspirate, JTAGulator, etc.) with different prices ranges according to the number of supported protocols. The one shown in the picture and used during the research is a Shikra.
 
 <img src="/assets/img/UART_root_shell.png">
 
-After connecting the pins as instructed by the Shikra documentation we can see an interactive root shell, we can use this to explore the firmware and dump it to our machine to get information more easily.
-The commands available are often really limited (as seen in the picture above), uploading a more versatile version of Busybox will lift the limitations and give us the tools to actually analyse and dump the system.
+After connecting the pins as instructed by the Shikra documentation we can see an **interactive root shell**, we can use this to explore the firmware and dump it to our machine to get information more easily.
+The commands available are often really limited (as seen in the picture above), uploading a more versatile version of *Busybox* will lift the limitations and give us the tools to actually analyse and dump the system.
+
 In my specific case I used `wget` on the device and a local *Python* webserver on my machine to download my Busybox on the device (it's important to note that a reboot will delete the file), and then used `dd` to download all of the firmware data.
 
-Dumping from a live system also has the added benefit of being more precise in how the it's setup at runtime and gives us access to temporary files and logs useful during the analysis.
+Dumping from a **live system** also has the added benefit of being more precise in how the it's setup at runtime and gives us access to temporary files and logs useful during the analysis.
 
 ## Firmware recon 
 
 Great, now that we have a firmware to analyse, what are we looking for?
-A great place to start is the startup configuration of the system.
+A great place to start is the **startup configuration** of the system.
 `init` is the inizialization process started by the kernel, and its configuration depends of the init system used.
 If **sysvinit** is used, it will load its configuration from `/etc/inittab`.
 If **systemdinit** is used, it will load its configuration from unit files. These are searched in the system unit path and user unit path.
@@ -155,7 +156,7 @@ sparrrgh@sparrrgh-spacebase:$ find . -type f -iname "*conf*" -not -empty -exec g
 ./etc/siproxd.conf
 ./etc/host.conf
 ```
-Finally, check for custom kernel modules. It's really hard to exploit modules remotely (one crash and the whole system is gone), but an attack through a module might let you skip the privilege escalation phase.
+Finally, check for custom kernel modules. It's really hard to exploit modules remotely (one crash and the whole system is gone), but an attack through a module might let you skip the **privilege escalation** phase.
 
 A good place to look for custom kernel modules is again the `init.d` directory.
 Below is an example of searching for scripts which the command `insmod`, this is the command used to load modules in the kernel.
@@ -197,7 +198,7 @@ tbs_nfp.rc:	insmod /lib/modules/2.6.36/kernel/net/nfp_adapter/tbs_nfp_module.ko
 
 After looking around for a bit, I had to decide which executable I wanted to fuzz.
 
-I wanted a service which was reachable from an attacker without physical access to the device and with low-to-none user interaction (this will make creating an harness for the executable way easier when developing a fuzzer).
+I wanted a service which was reachable from an attacker without physical access to the device and with **low-to-none user interaction** (this will make creating an harness for the executable way easier when developing a fuzzer).
 
 With this in mind I chose to fuzz the CGI binaries of the web server used in the local network to configure and manage the router.
 
