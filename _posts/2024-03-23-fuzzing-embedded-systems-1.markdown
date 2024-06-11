@@ -11,15 +11,15 @@ This will be the start of a series of blog posts based on my bachelor's degree t
 
 As a result I developed a **fuzzer** to search for vulnerabilities in CGI binaries and a **Binary Ninja plugin** to search for ROP chains in MIPS binaries, as well as an exploit for one of the crashes triaged.
 
-Today will be really introductory and we will briefly explore the basics of how to obtain and analyze a device's firmware, and the process to choose a target binary for the fuzzer. In the next episodes we will explore how to write a binary-only fuzzer in LibAFL and finally in the third part how to exploit the vulnerabilities found.
+Today will be really introductory and we will briefly explore the basics of how to obtain and analyze a device's firmware, and the process to choose a target binary for the fuzzer. In the next part we will explore how to write a binary-only fuzzer in LibAFL and finally in the third part how to exploit the vulnerabilities found.
 
 ## Target choice
 
-Embedded device is quite a broad term, and it encompasses many different type of systems, from huge solar inverters to tiny IoT cameras. These devices are designed to perform a handful of **specific** tasks, and often have ad-hoc hardware and software to do so.
+**Embedded device** is quite a broad term, and it encompasses many different type of systems, from huge solar inverters to tiny IoT cameras. These devices are designed to perform a handful of **specific** tasks, and often have ad-hoc hardware and software to do so.
 
-The requirements for low **power consumption** (they are designed to not be powered off) and low **memory consumption** (system resources are kept to a minimum to reduce cost and size) make implementing a lot of the modern memory corruption mitigations impossible. These makes them a prime target to gain a foothold in a network.
+The requirements for low **power consumption** (they are designed to not be powered off) and low **memory consumption** (system resources are kept to a minimum to reduce cost and size) make implementing a lot of the modern memory corruption mitigations impossible. This makes them a prime target to gain a foothold in a network.
 
-Since there are a miriad of devices which could be classified as "embedded systems", this means we have to find the type of device which better suits our needs.
+Since there are a miriad of devices which could be classified as "embedded systems", we have to find the type of device which better suits our needs.
 I wanted a device which:
 1. Exposes a number of services to the network.
 2. Whose compromise could lead to having further access to user data or to the network on which it's installed.
@@ -70,7 +70,7 @@ Usually this leads to interacting with hardware to get the software, but there a
 If even only **one** past version of the firmware did not have encryption, we could decrypt the following versions using its code as detailed in this ZDI article[^5].
 This has the added benefit of being able to decrypt different firmwares of the same vendor, by writing just one decryptor.
 
-Sometimes firmware is distributed in unencrypted form using **update systems** directly on the device or, for modern embedded systems, through a mobile application. It might be worth trying to intercept the traffic (especially if you already have a mobile app testing laboratory) and check if it's possible to get an unencrypted firmware update this way.
+Sometimes firmware is distributed in unencrypted form through **update systems** directly on the device or, for modern embedded systems, through a mobile application. It might be worth trying to intercept the traffic (especially if you already have a mobile app testing laboratory) and check if it's possible to get an unencrypted firmware update this way.
 
 In this case I decided, for future debugging purposes, to go with the hardware route and interact with the UART port we discovered previously.
 We can now connect using our favorite serial communication tool, and interact with an exposed (root) shell.
@@ -93,8 +93,11 @@ Dumping from a **live system** also has the added benefit of being more precise 
 Great, now that we have a firmware to analyse, what are we looking for?
 A great place to start is the **startup configuration** of the system.
 `init` is the inizialization process started by the kernel, and its configuration depends of the init system used.
+
 If **sysvinit** is used, it will load its configuration from `/etc/inittab`.
+
 If **systemdinit** is used, it will load its configuration from unit files. These are searched in the system unit path and user unit path.
+
 Both of them will execute the scripts contained the directory `/etc/init.d`, which are fundamental to enumerate the **custom** services started by the firmware.
 
 Below, as an example, an extract of the file `daemon.rc` found in the firmware for the DSL-3788 router. Please note the *mini_httpd* webserver running as root, right at the end of the snippet.
@@ -123,7 +126,7 @@ The `/etc/passwd` file is perfect for looking for unsecured users or custom logi
 `top` and `ps` are great for looking at the active processes and the command strings used when they were started. The command strings might reveal credentials, configuration files, or potential misconfigurations (like the webserver running as root shown before).
 
 Configuration files (usually identified with the extension `.conf`) might reveal additional information on the services used.
-Below, as an example, there's a series of **configuration** files found in the router. Note who one of them is is the `/tmp` directory, and would've been missed in case I didn't take an image of a live system.
+Below, as an example, there's a series of **configuration** files found in the router. Note how one of them is in the `/tmp` directory, and would've been missed in case I didn't take an image of a live system.
 ```bash
 sparrrgh@sparrrgh-spacebase:$ find . -type f -iname "*conf*" -not -empty -exec grep -Iq . {} \; -print
 ./var/siproxd.conf
@@ -200,7 +203,7 @@ After looking around for a bit, I had to decide which executable I wanted to fuz
 
 I wanted a service which was reachable from an attacker without physical access to the device and with **low-to-none user interaction** (this will make creating an harness for the executable way easier when developing a fuzzer).
 
-With this in mind I chose to fuzz the CGI binaries of the web server used in the local network to configure and manage the router.
+With this in mind I chose to fuzz the CGI binaries of the web server used to configure and manage the router.
 
 These binaries have the added benefit of having **none** of the recommended mitigations used by modern compilers, meaning we can pwn like we are Aleph One in '96.
 
@@ -222,6 +225,9 @@ Specifically, the firmware analysed uses two CGIs to handle all of the requests,
 
 ## In the next post
 We will talk about specifics on the process to create the fuzzer and the grammar used for testing the CGI-bins, and how I triaged the crashes.
+
+If you have questions or suggestions, please DM me on Twitter.
+(I hate the site, but I really don't know a good alternative besides good 'ol email)
 
 ## Footnotes
 [^1]: https://www.securenetwork.it/
