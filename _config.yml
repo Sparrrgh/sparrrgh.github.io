@@ -25,7 +25,9 @@ twitter_username: sparrrgh
 github_username:  sparrrgh
 
 # Build settings
-theme: minima
+remote_theme: jekyll/minima
+minima:
+  skin: dark
 plugins:
   - jekyll-feed
 defaults:
