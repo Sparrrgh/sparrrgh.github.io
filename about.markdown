@@ -3,8 +3,21 @@ layout: page
 title: About
 permalink: /about/
 ---
+<img src="/assets/img/bio.jpeg" style="height: 256px; width: 256px;">
 
-Hi! I'm Max. I currently work as a Security Engineer at Secure Network, in Italy.
+Hi! I'm Sparrrgh, a security researcher from Italy.
+I have experience in offensive security in various contexts, mainly web and binary exploitation.
 
-I'm passionate about vulnerability research and exploitation, especially writing tools to make finding vulnerabilities faster and easier!
-I've played CTFs for most of my time at the university, and I plan to use this blog to release writeups but most importantly to publish my research.
+I have a passion for optimizing vulnerability research processes, making finding bugs easier and faster. I do this mainly by developing custom SAST and DAST tooling.
+Currently, I'm working as a security engineer at Secure Network, in Milan.
+
+## Where to find me
+I love sharing my knowledge, especially with people trying to get into cybersecurity.
+
+The **main** way to contact me at the moment is through Twitter, but it could change if I find a better way.
+
+[Twitter](https://twitter.com/Sparrrgh)
+
+[Github](https://github.com/Sparrrgh)
+
+[LinkedIn](https://linkedin.com/in/max-bellia-86136a1a3)

@@ -21,13 +21,16 @@
 title: Sparrrgh's blog
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blog.sparrrgh.me/" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: sparrrgh
-github_username:  sparrrgh
+# twitter_username: sparrrgh
+# github_username:  sparrrgh
 
 # Build settings
 remote_theme: jekyll/minima
 minima:
-  skin: dark
+  skin: sakura
+  social_links:
+  - { platform: github,   user_url: "https://github.com/Sparrrgh" }
+  - { platform: twitter,  user_url: "https://twitter.com/Sparrrgh" }
 plugins:
   - jekyll-feed
 defaults:
