@@ -1,0 +1,13 @@
+// This way code block will wrap around
+code {
+  white-space : pre-wrap !important;
+}
+.site-nav{
+  .page-link {
+    color: $brand-color;
+  }
+}
+
+.post-meta{
+  color: $text-color;
+}
