@@ -52,7 +52,7 @@ If none are found, it might be necessary to dump the firmware directly from memo
 
 An alleged UART port is visible (just guessing, based on the 4 pins in a row) in the pictures provided, and engraved right below the pins are the (alleged) use of the pins.
 
-#### Testing the UART port
+### Testing the UART port
 
 A UART port can be used to communicate through serial with the **integrated circuit** and it's used by vendors to debug the device. Usually the pins are not installed on production devices, and only the pads are exposed. These pads have sometimes their traces interrupted to stop end users from interacting with it.
 
@@ -162,7 +162,7 @@ sparrrgh@sparrrgh-spacebase:$ find . -type f -iname "*conf*" -not -empty -exec g
 Finally, check for custom kernel modules. It's really hard to exploit modules remotely (one crash and the whole system is gone), but an attack through a module might let you skip the **privilege escalation** phase.
 
 A good place to look for custom kernel modules is again the `init.d` directory.
-Below is an example of searching for scripts which the command `insmod`, this is the command used to load modules in the kernel.
+Below is an example of searching for scripts which use the command `insmod`, this is the command used to load modules in the kernel.
 ```bash
 sparrrgh@sparrrgh-spacebase:$ grep "insmod" *
 btn.rc:insmod /lib/modules/driver/btn.ko 
@@ -197,7 +197,7 @@ tbs_nfp.rc:	insmod /lib/modules/2.6.36/kernel/net/nfp_adapter/tbs_nfp_adapter.ko
 tbs_nfp.rc:	insmod /lib/modules/2.6.36/kernel/net/nfp_adapter/tbs_nfp_module.ko
 ```
 
-#### Choosing which executable to fuzz
+### Choosing which executable to fuzz
 
 After looking around for a bit, I had to decide which executable I wanted to fuzz.
 
@@ -205,7 +205,7 @@ I wanted a service which was reachable from an attacker without physical access 
 
 With this in mind I chose to fuzz the CGI binaries of the web server used to configure and manage the router.
 
-These binaries have the added benefit of having **none** of the recommended mitigations used by modern compilers, meaning we can pwn like we are Aleph One in '96.
+These binaries have the added benefit of having **none** of the recommended mitigations used by modern compilers, meaning we can pwn like we are Aleph One[TODO] in '96.
 
 <img src="/assets/img/checksec.png">
 
@@ -226,15 +226,14 @@ Specifically, the firmware analysed uses two CGIs to handle all of the requests,
 ## In the next post
 We will talk about specifics on the process to create the fuzzer and the grammar used for testing the CGI-bins, and how I triaged the crashes.
 
-If you have questions or suggestions, please DM me on Twitter.
-(I hate the site, but I really don't know a good alternative besides good 'ol email)
+If you have questions or suggestions, you can email me at *max\[at\]sparrrgh\[dot\]me*.
 
 ## Footnotes
-[^1]: https://www.securenetwork.it/
-[^2]: https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router
-[^3]: https://www.dlink-forum.it/index.php?topic=4153.20
-[^4]: https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/
-[^5]: https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware
-[^6]: https://datatracker.ietf.org/doc/html/rfc3875
+[^1]: [https://www.securenetwork.it/](https://www.securenetwork.it/)
+[^2]: [https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router](https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router)
+[^3]: [https://www.dlink-forum.it/index.php?topic=4153.20](https://www.dlink-forum.it/index.php?topic=4153.20)
+[^4]: [https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/](https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/)
+[^5]: [https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware](https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware)
+[^6]: [https://datatracker.ietf.org/doc/html/rfc3875](https://datatracker.ietf.org/doc/html/rfc3875)
 
 
