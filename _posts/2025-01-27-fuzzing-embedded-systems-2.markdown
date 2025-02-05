@@ -13,7 +13,7 @@ We explored why I chose to research CGI binaries and what they are and how they 
 
 Today we will delve into automated vulnerability research through fuzzing. How to write a fuzzer and how to triage vulnerabilities.
 
-The vulnerability described affects the firmware *DSL-3788_fw_revA1_1.01R1B036_EU_EN* and has been fixed. A CVE-id is still in the process to be assigned.
+The vulnerability described affects the firmware *DSL-3788_fw_revA1_1.01R1B036_EU_EN* , it has been fixed and MITRE assigned the following id to track it ***CVE-2024-57440***.
 
 ## Fuzzing
 Fuzz testing (better known as fuzzing) is a dynamic application security testing technique where input is generated (or mutated), is fed to the program and finally feedback is observed for interesting behaviors.
