@@ -21,6 +21,7 @@
 title: Sparrrgh's blog
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://blog.sparrrgh.me/" # the base hostname & protocol for your site, e.g. http://example.com
+repository: Sparrrgh/sparrrgh.github.io
 # twitter_username: sparrrgh
 # github_username:  sparrrgh
 
