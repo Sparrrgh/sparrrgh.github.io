@@ -30,8 +30,12 @@ remote_theme: jekyll/minima
 minima:
   skin: sakura
   social_links:
-  - { platform: github,   user_url: "https://github.com/Sparrrgh" }
-  - { platform: bluesky,  user_url: "https://bsky.app/profile/sparrrgh.me" }
+    - title: Jekyll repository at GitHub
+      icon: github
+      url: "https://github.com/Sparrrgh"
+    - title: Sparrrgh on BlueSky
+      icon: bluesky
+      url: "https://bsky.app/profile/sparrrgh.me"
 plugins:
   - jekyll-feed
 defaults:
