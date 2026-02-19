@@ -109,7 +109,7 @@ But what about more complex JSON objects, how can we represent them using a URL-
 
 ### Introducing qs
 qs is the npm package with the most downloads (100+ mil weekly) used for parsing query strings.
-It also supports nested objects, which allow to represent complex objects using URL-encoded querys trings using bracket syntax.
+It also supports nested objects, which allow to represent complex objects using URL-encoded querys strings using bracket syntax.
 
 This package is also the library **used by the default** by Express when requesting the `express.urlencoded` middleware with the `extended` option set to ***true***. This option is currently (since Express 5) set by default to *false*, but it's pretty common to force it to *true* using code like the one below.
 
@@ -175,8 +175,8 @@ If you are trying to replicate this attack remember the **premises** set initial
 While the parsing bug may be patched, many Express applications still implement multiple middlewares allowing the usage of simple requests for CSRF attacks. With verb tampering you may even be able to bypass *SameSite* directives set to *Lax*.
 
 ## Timeline
-- 10 Feb - Disclosed issue to developer
-- 14 Feb - Patch[^3] released in **qs v6.15.0**
+- 10 February 2026 - Disclosed issue to developer
+- 14 February 2026 - Patch[^3] released in **qs v6.15.0**
 
 ## Footnotes
 [^1]: [Cross-Site Request Forgery - Portswigger Web Academy](https://portswigger.net/web-security/csrf)
