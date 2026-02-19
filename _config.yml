@@ -26,7 +26,8 @@ repository: Sparrrgh/sparrrgh.github.io
 # github_username:  sparrrgh
 
 # Build settings
-remote_theme: jekyll/minima
+remote_theme: jekyll/minima@767779b
+
 minima:
   skin: sakura
   social_links:
@@ -36,8 +37,11 @@ minima:
     - title: Sparrrgh on BlueSky
       icon: bluesky
       url: "https://bsky.app/profile/sparrrgh.me"
+
+
 plugins:
   - jekyll-feed
+
 defaults:
   - scope:
       path: "assets/img"
