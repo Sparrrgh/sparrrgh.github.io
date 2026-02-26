@@ -4,6 +4,12 @@ title:  "Fuzzing embedded systems - Part 2, Writing a fuzzer with LibAFL"
 date:   2025-01-26 12:30:54 +0100
 categories: fuzzing embedded
 ---
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.0.2/+esm'
+  mermaid.initialize({startOnLoad:true,theme:'dark'})
+  await mermaid.run({querySelector:'code.language-mermaid'})
+</script>
+
 
 ## Intro
 
@@ -28,7 +34,7 @@ This limitations are being worked on with new techniques like differential fuzzi
 
 So, why use fuzzing? To find vulnerabilities faster (or try to) and with less effort than manual vulnerability research.
 
-![alt text](/assets/img/fuzz_vr.gif)
+![GIF showing a meme with happy Pedro Pascal with "Fuzzing" written on his head, looking at angry Nicholas Cage with "Manual VR" written on his head](/assets/img/fuzz_vr.gif)
 
 ## LibAFL
 Fuzzers are mostly built to do the same stuff, with very little differences or approaches. It can be useful then to have a library that collects the most important parts of a fuzzer while still allowing for customization for different targets and use cases.
@@ -63,7 +69,14 @@ As said before, I couldn't get this part to work for MIPS, which means we will b
 
 Another approach used by a majority of fuzzers is **snapshot fuzzing**. This is an optimization technique which saves a snapshot of the state of the program (e.g., registers, stack, etc) before the target code and restores it after either a corruption happens or the end of the target function to fuzz is reached.
 
-![alt text](/assets/img/mermaid_snapshot_flowchart.png)
+```mermaid
+flowchart TD
+    a[Program starts] --> b[State is saved]
+    b[State is saved] --> c[Fuzz target]
+    c[Fuzz target] --> d[Crash?]
+    d --> f[Save crash file]
+    d --> b[State is saved]
+```
 
 It only executes the portion of code between the **snapshot** and the end of the **fuzz target**, saving CPU cycles which would otherwise be dedicated to inizialization and destruction code (e.g., to load libraries).
 
@@ -110,7 +123,11 @@ This makes it possible to unparse the tree mutated by Nautilus starting from dif
 One subtree is dedicated to all the inputs which have to be sent trough environment variables.
 The other is for the body of the request, which has to be sent through standard input.
 
-![alt text](/assets/img/mermaid_grammar_graph.png)
+```mermaid
+flowchart TD
+    id1((Root)) --> id2((Environment variables))
+    id1((Root)) --> id3((POST body))
+```
 
 For both subtrees I chose a very simple approach, which can be greatly improved.
 First, I created some simple basic types to use in the grammar, as well as "naughty" data which contains stuff to facilitate crashing.
@@ -162,7 +179,7 @@ FUZZTERM
 This concretized input is split in two parts: the environment variables before `FUZZTERM` and the value sent to stdin as body of the requests after it.
 The registers at the time of the crash contain the following values:
 
-![alt text](/assets/img/crash_3-5_original.png)
+![Screenshot of pwndbg showing all registers. The register ra is highlighted and contains the value 4a79567a](/assets/img/crash_3-5_original.png)
 
 As we can see the return address (which in MIPS is contained in a dedicated register called `ra`) is not part of any code section. and registers s0 through s7 seem to contain some ASCII pattern.
 Usually at this point you would just search the bytes of your return address inside your input we have no match.
@@ -185,7 +202,7 @@ FUZZTERM
 ```
 Which resulted in a controlled crash where all the registers from s0 to s7 contain *AAAA* (or, in hex 41414141) and the return address contains EEEE (or, in hex 45454545).
 
-![alt text](/assets/img/controllable_overflow_crash.png)
+![Screenshot of pwndbg showing a crash at 45454545 with registers printed. All registers contain the value 41414141 except for the ra register containing 45454545](/assets/img/controllable_overflow_crash.png)
 
 IF the cookie contains only regular ASCII characters no base64 encoding is applied, giving complete control over all stored registers and the return address register. We will see in the next blog post how this can be exploited to gain remote command execution.
 
@@ -196,7 +213,7 @@ This is useful for developers to fix the bug and for us to know the precondition
 The tooling made reconstructing the backtrace of the crash hard, and given the little time remaining I chose a... creative approach.
 I decided to crash the program with different-length inputs and leak part of the address through the `ra` register by partially overwriting it.
 
-![alt text](/assets/img/partial_address_leak.png)
+![Screenshot of pwndbg showing a crash at 450030f8, with all registers containing 41414141 except for ra register containing 450030f8](/assets/img/partial_address_leak.png)
 
 This version of MIPS is big-endian, which means we will overwrite the most-significant bytes of the address.
 This meant I could leak the two least-significant bytes (as per screenshot above they are ***30f8***), since the others are my controlled value followed by a null-terminator.
@@ -208,7 +225,7 @@ By analysing the sections of the executable we could find the function which cal
 In this case the return address simply pointed at the data section fo the CGI binary, and we know it's the right one because it's right after a jump as seen in the Binary Ninja graph shown in the screenshot (at the bottom see address ***0x004030f8***).
 
 
-![alt text](/assets/img/return_address_binja.png)
+![Screenshot of Binary Ninja graph showing the function used to check the authentication of users. At the end of the graph, after a jump, appears a block of code at the address 0x004030f8](/assets/img/return_address_binja.png)
 
 But what are we looking at?
 
@@ -220,13 +237,13 @@ The actual bug is in the *COMM_MakeCustomMsg* function, from the *libssap* libra
 
 In this function a buffer is created on the stack (not pictured) and then the buffer contents are set to 0 using `memset`. The `sprintf` function is then used to fill the buffer with a formatted string, using two strings from the heap.
 
-![alt text](/assets/img/root_cause.png)
+![Screenshot of Binary Ninja decompilation showing the function sprintf writing in a buffer by formatting two strings contained in two mallocs](/assets/img/root_cause.png)
 
 `sprintf` is a dangerous function, because it does not check the bounds of the formatted data before saving it. In this case the length of `buf` is smaller than the length of the data written in it, leading to an overflow on the buffer onto the rest of the stack.
 
 D-Link responded with an advisory[^10] and the following fix:
 
-![alt text](/assets/img/patched_libbsap.png)
+![Screenshot of Binary Ninja decompilation showing the function snpritf now writing the two strings but now limiting the number of bytes written to prevent an overflow](/assets/img/patched_libbsap.png)
 
 The only difference is the usage of the `snprintf` function which, differently from `sprintf`, does check the bounds before saving it in the buffer.
 
@@ -247,5 +264,5 @@ If you have questions or suggestions, you can email me at *max\[at\]sparrrgh\[do
 [^6]: [Qemu-CGI-fuzzer](https://github.com/Sparrrgh/Qemu-CGI-fuzzer)
 [^7]: ["NAUTILUS: Fishing for Deep Bugs with Grammars"](https://github.com/nautilus-fuzz/nautilus)
 [^8]: [TrackmaniaFuzzer](https://github.com/RickdeJager/TrackmaniaFuzzer)
-[^9]: [Epi052 fuzzing 101 solution - Exercise 4](https://github.com/epi052/fuzzing-101-solutions/tree/main/exercise-4)
+[^9]: [Exercise 4 - Epi052 fuzzing 101 solution](https://github.com/epi052/fuzzing-101-solutions/tree/main/exercise-4)
 [^10]: [D-Link advisory](https://supportannouncement.us.dlink.com/security/publication.aspx?name=SAP10418)

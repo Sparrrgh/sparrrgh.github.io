@@ -36,7 +36,7 @@ So I headed to Amazon and chose the one reported as "most purchased" at the time
 Luckily someone uploaded pictures of their damaged router on a support forum[^3], which allowed me to research the PCB and the components before even buying the router.
 From the uploaded pictures we can note a few things.
 
-<img src="/assets/img/dsl-3788_pcb_reuse.png">
+![Photo of the PCB displaying the text DSL-3785 painted and underlined as well as a CPU component with EcoNet EN7513GT engraved on it](/assets/img/dsl-3788_pcb_reuse.png)
 
 The PCB is engraved with the model number of **another router**. This make it more probable that code is also reused, meaning that a vulnerability found could affect multiple models.
 We can also identify single components like CPUs, memories and available interfaces.
@@ -48,7 +48,7 @@ We can also see a potential **UART** interface. Exposed **serial communication i
 
 If none are found, it might be necessary to dump the firmware directly from memory. This is done by either **detaching** the flash memory chip completely and attaching it to a memory reader, or by **sniffing** the traffic between the integrated circuit and flash memory. Firmware isn't **usually** encrypted at rest, but high-security devices might have it as a feature, making dumping the flash memory useless.
 
-<img src="/assets/img/UART_online.jpg">
+![Photo of connector on the PCB with 4 exposed pins labelled RX,TX,GND,VCC](/assets/img/UART_online.jpg)
 
 An alleged UART port is visible (just guessing, based on the 4 pins in a row) in the pictures provided, and engraved right below the pins are the (alleged) use of the pins.
 
@@ -61,7 +61,7 @@ There are also other more physical techniques to check if the pads are connected
 I then used a *logic analyzer* to verify if the port was communicating correctly, and which was the correct *baudrate* which the interface uses to communicate. 
 The logic analyzer shows some logs as output! Meaning it does in fact communicate through serial (thankfully, because my soldering skills are almost non-existant).
 
-<img src="/assets/img/logic_analyser_UART.png">
+![Screenshot of Logic Pro software displaying some text which looks like startup logs from a Linux based system](/assets/img/logic_analyser_UART.png)
 
 ## Obtaining firmware
 
@@ -75,11 +75,11 @@ Sometimes firmware is distributed in unencrypted form through **update systems**
 In this case I decided, for future debugging purposes, to go with the hardware route and interact with the UART port we discovered previously.
 We can now connect using our favorite serial communication tool, and interact with an exposed (root) shell.
 
-<img src="/assets/img/shikra_cut.png" style="display: block">
+![Photo of Shikra device connected using small cables to the previously shown 4-pin connector on the PCB](/assets/img/shikra_cut.png)
 
 There are many different tools available to do this (Glasgow, Shikra, Buspirate, JTAGulator, etc.) with different prices ranges according to the number of supported protocols. The one shown in the picture and used during the research is a Shikra.
 
-<img src="/assets/img/UART_root_shell.png">
+![Screenshot of Linux shell displaying version 1.6.1 of busybox as well as enviroment variables showing the shell is logged in as root](/assets/img/UART_root_shell.png)
 
 After connecting the pins as instructed by the Shikra documentation we can see an **interactive root shell**, we can use this to explore the firmware and dump it to our machine to get information more easily.
 The commands available are often really limited (as seen in the picture above), uploading a more versatile version of *Busybox* will lift the limitations and give us the tools to actually analyse and dump the system.
@@ -205,12 +205,12 @@ I wanted a service which was reachable from an attacker without physical access 
 
 With this in mind I chose to fuzz the CGI binaries of the web server used to configure and manage the router.
 
-These binaries have the added benefit of having **none** of the recommended mitigations used by modern compilers, meaning we can pwn like we are Aleph One[TODO] in '96.
+These binaries have the added benefit of having **none** of the recommended mitigations used by modern compilers, meaning we can pwn like we are Aleph One[^6] in '96.
 
-<img src="/assets/img/checksec.png">
+![Screenshot of Checksec tool from Pwntools displaying the webproc binary missing RELRO, stack canaries, PIE and RWX segments](/assets/img/checksec.png)
 
 #### What is CGI, and how does it work
-From RFC 3875[^6]:
+From RFC 3875[^7]:
 > The Common Gateway Interface (CGI) allows an HTTP, server and a CGI script to share responsibility for responding to client requests. The client request comprises a Uniform Resource Identifier (URI), a request method and various ancillary information about the request provided by the transport protocol. 
 > The CGI defines the abstract parameters, known as meta-variables, which describe a client's request.  Together with a concrete programmer interface this specifies a platform-independent interface between the script and the HTTP server.
 
@@ -230,10 +230,11 @@ If you have questions or suggestions, you can email me at *max\[at\]sparrrgh\[do
 
 ## Footnotes
 [^1]: [https://www.securenetwork.it/](https://www.securenetwork.it/)
-[^2]: [https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router](https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router)
-[^3]: [https://www.dlink-forum.it/index.php?topic=4153.20](https://www.dlink-forum.it/index.php?topic=4153.20)
-[^4]: [https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/](https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/)
-[^5]: [https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware](https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware)
-[^6]: [https://datatracker.ietf.org/doc/html/rfc3875](https://datatracker.ietf.org/doc/html/rfc3875)
+[^2]: [DSL 3788 - DLink](https://www.dlink.com/uk/en/products/dsl-3788-wireless-ac1200-gigabit-vdsl-adsl-modem-router)
+[^3]: [DSL-3788 Modem Router VDSL/ADSL Wi‑Fi AC1200 - www.dlink-forum.it](https://www.dlink-forum.it/index.php?topic=4153.20)
+[^4]: [Practical Reverse Engineering Part 1 - Hunting for Debug Ports - jcjc-dev.com](https://jcjc-dev.com/2016/04/08/reversing-huawei-router-1-find-uart/)
+[^5]: [MindShaRE: Dealing with encrypted router firmware - ZeroDayInitiative](https://www.zerodayinitiative.com/blog/2020/2/6/mindshare-dealing-with-encrypted-router-firmware)
+[^6]: [Smashing The Stack For Fun And Profit - Phrack](https://phrack.org/issues/49/14#article)
+[^7]: [RFC3875 - IETF](https://datatracker.ietf.org/doc/html/rfc3875)
 
 
